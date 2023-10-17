@@ -12,7 +12,10 @@ local function filterduplicates(list)
   return result
 end
 
-local function TreesitterNames()
+local function GenerateIdentifiers(fileLoc)
+  if vim.treesitter.highlighter.active[vim.api.nvim_get_current_buf()] == nil then
+    return
+  end
   local ts = vim.treesitter
   local parser = ts.get_parser()
   local bufnr = vim.api.nvim_get_current_buf()
@@ -38,15 +41,27 @@ local function TreesitterNames()
     return vim.treesitter.get_node_text(node, bufnr)
   end, named))
 
-  local fileLoc = "/user/ellie/.talon/user/treesitter_names.talon"
   local file = io.open(fileLoc, "w")
   if file == nil then
-    print("issue")
     return
   end
+  file:write("tag: user.nvim-mode-i\n-\n")
   for _, name in ipairs(names) do
-    file:write(name .. '\n\t"' .. name .. '"\n')
+    file:write(name .. ':\n\t"' .. name .. '"\n\n')
   end
+  file:close()
 end
 
-vim.keymap.set('n', '<leader>lD', TreesitterNames, {})
+local function ClearIdentifiers(fileLoc)
+  local file = io.open(fileLoc, "w")
+  if file == nil then
+    return
+  end
+  file:write("")
+  file:close()
+end
+
+return {
+  generate = GenerateIdentifiers,
+  clear = ClearIdentifiers
+}
